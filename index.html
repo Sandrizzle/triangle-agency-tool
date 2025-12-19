@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三角机构 | 综合物资终端 V23</title>
+    <title>三角机构 | 综合物资终端 V23.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* =========================================
@@ -218,7 +218,6 @@
             margin: 0 auto;
             padding: 40px; padding-left: 80px; 
             width: 100%; max-width: 1200px;
-            flex: 1; /* Footer push */
         }
 
         /* 头部 */
@@ -396,6 +395,7 @@
 
         .card-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
         
+        /* 占位符 */
         .triangle-placeholder {
             width: 0; height: 0;
             border-left: 30px solid transparent; border-right: 30px solid transparent;
@@ -459,7 +459,7 @@
         }
         .card:hover .delete-btn { opacity: 1; }
 
-        /* 模态框 */
+        /* 导出弹窗 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 2000; display: none;
@@ -491,6 +491,7 @@
         @media print {
             .no-print { display: none !important; }
             .requisition-board { display: block; width: 100%; }
+            .column { margin-bottom: 40px; page-break-inside: avoid; }
             .card { border: 1px solid #ddd; page-break-inside: avoid; }
             [data-mode="siphon"] body { background: #fff; color: #000; }
         }
@@ -563,9 +564,7 @@
     <div class="modal-overlay" id="helpModal">
         <div class="modal">
             <h3>终端操作指南</h3>
-            <div id="helpContent">
-                <!-- 内容由JS动态渲染 -->
-            </div>
+            <div id="helpContent"></div>
             <div style="text-align:right; margin-top:20px;">
                 <button class="btn-blue" onclick="document.getElementById('helpModal').style.display='none'">明白</button>
             </div>
@@ -576,7 +575,7 @@
         <header>
             <div class="header-title">
                 <h1 id="siteTitle">TRIANGLE <span>AGENCY</span></h1>
-                <div class="subtitle" id="siteSubtitle">综合物资终端 v23.0</div>
+                <div class="subtitle" id="siteSubtitle">综合物资终端 v23.1</div>
                 <div class="siphon-quote" id="siphonQuote"></div>
             </div>
             <div class="no-print" style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
@@ -625,7 +624,7 @@
                 </div>
                 <div class="form-group">
                     <label>来源归属</label>
-                    <input list="branchOptions" id="itemSource" placeholder="输入来源（来源为官方则输入*三联城总部*）">
+                    <input list="branchOptions" id="itemSource" placeholder="输入来源">
                     <datalist id="branchOptions">
                         <option value="三联城总部">
                         <option value="Siphon的商店">
@@ -641,8 +640,11 @@
                     <button type="button" class="btn-small btn-blue" onclick="addPriceField()">+ 添加价格</button>
                 </div>
                 <div class="form-group" id="imageUploadGroup">
-                    <label>图片</label>
-                    <input type="file" id="itemImage" accept="image/*" onchange="previewImage(this)">
+                    <label>图片 <span style="font-weight:normal; color:#999; font-size:0.8rem;">(可选)</span></label>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="file" id="itemImage" accept="image/*" onchange="previewImage(this)">
+                        <button type="button" id="removeImgBtn" class="btn-small" style="background:#666; display:none;" onclick="clearImage()">清除</button>
+                    </div>
                     <div id="imagePreview" style="margin-top:5px; width:80px; height:80px; background:var(--input-bg); display:none; align-items:center; justify-content:center; border:1px solid var(--border-color);"></div>
                 </div>
             </div>
@@ -723,7 +725,7 @@
                             : '切换多种机构批准的视觉主题。'}</li>
                         <li>${currentMode === 'siphon' 
                             ? '<s>切换至Siphon商店</s> <span class="siphon-patch">小彩蛋：点击一下网站左上角的眼睛吧！</span>' 
-                            : '访问 <span class="spoiler-block" title="切换风格里有东西在看着你！">某个商店</span> (鼠标悬停查看提示)。'}</li>
+                            : '访问 <span class="spoiler-block" title="切换风格里有东西在看着你！">某个商店</span>  (鼠标悬停查看提示)。'}</li>
                     </ul>
                 </div>
             `;
@@ -744,7 +746,7 @@
 
             let footer = `
                 <div class="modal-section" style="border-top:1px solid var(--border-color); padding-top:10px;">
-                    <p>本项目完全免费、开源。基于《三角机构》TTRPG规则的粉丝二创。</p>
+                    <p>本项目完全免费、开源。基于《三角机构》TRPG规则的粉丝二创。</p>
                     <p>源代码与反馈：<a href="https://github.com/Sandrizzle/triangle-agency-tool" target="_blank" style="color:var(--secondary);">GitHub Repository</a></p>
                 </div>
             `;
@@ -776,7 +778,6 @@
                     if(!confirm("确定覆盖当前所有数据？")) return;
                     currentItems = data;
                 } else {
-                    // Append: re-id items
                     const offset = Date.now();
                     const newItems = data.map((item, idx) => ({...item, id: offset + idx}));
                     currentItems = currentItems.concat(newItems);
@@ -940,7 +941,7 @@
             localStorage.setItem(key, JSON.stringify(currentItems));
         }
 
-        // === 交互功能 (包含V22重写的拖拽逻辑) ===
+        // === 交互功能 (图片上传包含清除) ===
         function addPriceField(label = '', cost = '') {
             const container = document.getElementById('priceContainer');
             const currency = currentMode === 'siphon' ? '申诫' : '嘉奖';
@@ -1013,12 +1014,22 @@
                         preview.style.display = 'block';
                         preview.style.background = `url(${tempImageBase64}) center/cover`;
                         preview.innerHTML = '';
+                        document.getElementById('removeImgBtn').style.display = 'inline-block'; // Show remove btn
                     }
                 }
                 reader.readAsDataURL(input.files[0]);
             }
         }
         
+        function clearImage() {
+            document.getElementById('itemImage').value = '';
+            tempImageBase64 = '';
+            const preview = document.getElementById('imagePreview');
+            preview.style.display = 'none';
+            preview.style.background = '';
+            document.getElementById('removeImgBtn').style.display = 'none';
+        }
+
         function toggleImages(shouldRender = true) {
             isImageEnabled = document.getElementById('imageToggle').checked;
             localStorage.setItem(SETTING_KEY_IMG, isImageEnabled);
@@ -1082,10 +1093,16 @@
             tempImageBase64 = item.image || "";
             
             const preview = document.getElementById('imagePreview');
+            const removeBtn = document.getElementById('removeImgBtn');
+            
             if (tempImageBase64 && isImageEnabled) {
                 preview.style.display = 'block';
                 preview.style.background = `url(${tempImageBase64}) center/cover`;
-            } else { preview.style.display = 'none'; }
+                removeBtn.style.display = 'inline-block';
+            } else { 
+                preview.style.display = 'none'; 
+                removeBtn.style.display = 'none';
+            }
             
             const pContainer = document.getElementById('priceContainer');
             pContainer.innerHTML = '';
@@ -1108,9 +1125,7 @@
             document.getElementById('itemDesc').value = '';
             document.getElementById('itemCondition').value = '';
             document.getElementById('itemPurchasedBy').value = '';
-            document.getElementById('itemImage').value = '';
-            document.getElementById('imagePreview').style.display = 'none';
-            tempImageBase64 = '';
+            clearImage(); // Reset image inputs
             document.getElementById('priceContainer').innerHTML = '';
             addPriceField();
             refreshDisplay();
@@ -1174,8 +1189,6 @@
             const container = document.getElementById('exportArea');
             const searchText = document.getElementById('searchInput').value.toLowerCase();
             let items = forceItems ? forceItems : currentItems;
-            
-            // 默认排序已被拖拽取代，仅在必要时（如初始加载无顺序）可考虑排序，这里直接用数组顺序
             
             container.innerHTML = filterLabel ? `<div class="filter-watermark">筛选条件：${filterLabel}</div>` : '';
 
@@ -1241,7 +1254,6 @@
                 : '';
 
             // Siphon 补丁逻辑
-            let displayHeader = item.name;
             let currencyDisplay = currency;
             
             if (currentMode === 'siphon') {
