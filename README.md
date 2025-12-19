@@ -72,11 +72,11 @@
 
 ## ⚖️ 免责声明 (Disclaimer)
 
-This project is an unofficial fan tool for the **Triangle Agency** TTRPG.  
+This project is an unofficial fan tool for the **Triangle Agency** TRPG.  
 **Triangle Agency** is a trademark of **Haunted Table Games**.  
 This project is not affiliated with or endorsed by Haunted Table Games.
 
-本项目是基于《三角机构》TTRPG 规则的非官方粉丝二创工具。
+本项目是基于《三角机构》TRPG 规则的非官方粉丝二创工具。
 完全免费，开源，仅供跑团娱乐使用。
 
 ---
